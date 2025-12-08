@@ -1,0 +1,374 @@
+{
+	"info": {
+		"_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+		"name": "Location API",
+		"description": "API endpoints for fetching countries, states, and cities from countriesbox database",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "12345678"
+	},
+	"item": [
+		{
+			"name": "Countries",
+			"item": [
+				{
+					"name": "Get All Countries",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/countries",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"countries"
+							]
+						},
+						"description": "Retrieves a list of all countries with their details including name, ISO codes, capital, currency, coordinates, etc."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Single Country",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/countries/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"countries",
+								"1"
+							]
+						},
+						"description": "Retrieves details of a specific country by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Get States of a Country",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/countries/1/states",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"countries",
+								"1",
+								"states"
+							]
+						},
+						"description": "Retrieves all states/provinces belonging to a specific country"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Cities of a Country",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/countries/1/cities",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"countries",
+								"1",
+								"cities"
+							]
+						},
+						"description": "Retrieves all cities belonging to a specific country"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints for managing and retrieving country data"
+		},
+		{
+			"name": "States",
+			"item": [
+				{
+					"name": "Get All States",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/states",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"states"
+							]
+						},
+						"description": "Retrieves a list of all states/provinces from all countries"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Single State",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/states/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"states",
+								"1"
+							]
+						},
+						"description": "Retrieves details of a specific state/province by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Cities of a State",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/states/1/cities",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"states",
+								"1",
+								"cities"
+							]
+						},
+						"description": "Retrieves all cities belonging to a specific state/province"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints for managing and retrieving state/province data"
+		},
+		{
+			"name": "Cities",
+			"item": [
+				{
+					"name": "Get All Cities",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/cities",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"cities"
+							]
+						},
+						"description": "Retrieves a list of all cities from all countries and states"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Single City",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/cities/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"cities",
+								"1"
+							]
+						},
+						"description": "Retrieves details of a specific city by ID"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints for managing and retrieving city data"
+		},
+		{
+			"name": "Error Handling Tests",
+			"item": [
+				{
+					"name": "Get Non-existent Country",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/countries/99999",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"countries",
+								"99999"
+							]
+						},
+						"description": "Tests 404 error handling for non-existent country"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Non-existent State",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/states/99999",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"states",
+								"99999"
+							]
+						},
+						"description": "Tests 404 error handling for non-existent state"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Non-existent City",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/cities/99999",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"cities",
+								"99999"
+							]
+						},
+						"description": "Tests 404 error handling for non-existent city"
+					},
+					"response": []
+				}
+			],
+			"description": "Test cases for error handling and edge cases"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000",
+			"type": "string"
+		}
+	]
+}

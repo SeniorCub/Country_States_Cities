@@ -1,0 +1,530 @@
+{
+	"info": {
+		"_postman_id": "csc-api-collection-2025",
+		"name": "Country-State-City API",
+		"description": "API collection for testing Country, State, and City endpoints",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Regions",
+			"item": [
+				{
+					"name": "Get All Regions",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/regions",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"regions"
+							]
+						},
+						"description": "Retrieves all regions from the database"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Region by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/regions/1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"regions",
+								"1"
+							]
+						},
+						"description": "Retrieves a specific region by its ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Subregions by Region ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/regions/1/subregions",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"regions",
+								"1",
+								"subregions"
+							]
+						},
+						"description": "Retrieves all subregions for a specific region"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Countries by Region ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/regions/1/countries",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"regions",
+								"1",
+								"countries"
+							]
+						},
+						"description": "Retrieves all countries in a specific region"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints for managing regions"
+		},
+		{
+			"name": "Subregions",
+			"item": [
+				{
+					"name": "Get All Subregions",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/subregions",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"subregions"
+							]
+						},
+						"description": "Retrieves all subregions from the database"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Subregion by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/subregions/1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"subregions",
+								"1"
+							]
+						},
+						"description": "Retrieves a specific subregion by its ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Countries by Subregion ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/subregions/1/countries",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"subregions",
+								"1",
+								"countries"
+							]
+						},
+						"description": "Retrieves all countries in a specific subregion"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints for managing subregions"
+		},
+		{
+			"name": "Countries",
+			"item": [
+				{
+					"name": "Get All Countries",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/countries",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"countries"
+							]
+						},
+						"description": "Retrieves all countries from the database"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Country by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/countries/1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"countries",
+								"1"
+							]
+						},
+						"description": "Retrieves a specific country by its ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Get States by Country ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/countries/1/states",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"countries",
+								"1",
+								"states"
+							]
+						},
+						"description": "Retrieves all states for a specific country"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Cities by Country ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/countries/1/cities",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"countries",
+								"1",
+								"cities"
+							]
+						},
+						"description": "Retrieves all cities for a specific country"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints for managing countries"
+		},
+		{
+			"name": "States",
+			"item": [
+				{
+					"name": "Get All States",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/states",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"states"
+							]
+						},
+						"description": "Retrieves all states from the database"
+					},
+					"response": []
+				},
+				{
+					"name": "Get State by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/states/1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"states",
+								"1"
+							]
+						},
+						"description": "Retrieves a specific state by its ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Cities by State ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/states/1/cities",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"states",
+								"1",
+								"cities"
+							]
+						},
+						"description": "Retrieves all cities for a specific state"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints for managing states"
+		},
+		{
+			"name": "Cities",
+			"item": [
+				{
+					"name": "Get All Cities",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/cities",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"cities"
+							]
+						},
+						"description": "Retrieves all cities from the database"
+					},
+					"response": []
+				},
+				{
+					"name": "Get City by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/cities/1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"cities",
+								"1"
+							]
+						},
+						"description": "Retrieves a specific city by its ID"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints for managing cities"
+		},
+		{
+			"name": "Search",
+			"item": [
+				{
+					"name": "Search Countries",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/search/countries?q=United",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"search",
+								"countries"
+							],
+							"query": [
+								{
+									"key": "q",
+									"value": "United",
+									"description": "Search by country name"
+								},
+								{
+									"key": "iso2",
+									"value": "US",
+									"description": "Filter by ISO2 code",
+									"disabled": true
+								},
+								{
+									"key": "iso3",
+									"value": "USA",
+									"description": "Filter by ISO3 code",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Search countries by name, ISO2, or ISO3 code"
+					},
+					"response": []
+				},
+				{
+					"name": "Search States",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/search/states?q=New",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"search",
+								"states"
+							],
+							"query": [
+								{
+									"key": "q",
+									"value": "New",
+									"description": "Search by state name"
+								},
+								{
+									"key": "country_id",
+									"value": "1",
+									"description": "Filter by country ID",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Search states by name with optional country filter"
+					},
+					"response": []
+				},
+				{
+					"name": "Search Cities",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/search/cities?q=London",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"search",
+								"cities"
+							],
+							"query": [
+								{
+									"key": "q",
+									"value": "London",
+									"description": "Search by city name"
+								},
+								{
+									"key": "state_id",
+									"value": "1",
+									"description": "Filter by state ID",
+									"disabled": true
+								},
+								{
+									"key": "country_id",
+									"value": "1",
+									"description": "Filter by country ID",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Search cities by name with optional state/country filters"
+					},
+					"response": []
+				}
+			],
+			"description": "Search endpoints for finding locations"
+		},
+		{
+			"name": "Statistics",
+			"item": [
+				{
+					"name": "Get API Statistics",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/stats",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"stats"
+							]
+						},
+						"description": "Get total counts of all entities in the database"
+					},
+					"response": []
+				}
+			],
+			"description": "Statistical information endpoints"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:9055",
+			"type": "string"
+		}
+	]
+}
