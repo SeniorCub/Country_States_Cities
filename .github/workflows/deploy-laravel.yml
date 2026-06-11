@@ -40,6 +40,8 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SERVER_PORT }}
           script: |
+            # Ensure the directory exists
+            mkdir -p ~/public_html/country-states-cities.seniorcub.name.ng/laravel
             cat > ~/public_html/country-states-cities.seniorcub.name.ng/laravel/.env << 'INNER_EOF'
             ${{ secrets.LARAVEL_ENV_FILE }}
             INNER_EOF
@@ -56,9 +58,8 @@ jobs:
             set -euo pipefail
             BASE_DIR=~/public_html/country-states-cities.seniorcub.name.ng
             APP_DIR="$BASE_DIR/laravel"
-            WEB_DIR="$BASE_DIR/api"
             
-            mkdir -p "$APP_DIR" "$WEB_DIR"
+            mkdir -p "$APP_DIR"
             
             if [ ! -f "$APP_DIR/artisan" ]; then
               echo "[ERROR] artisan not found at $APP_DIR/artisan"
@@ -90,6 +91,11 @@ jobs:
             set -euo pipefail
             APP_DIR=~/public_html/country-states-cities.seniorcub.name.ng/laravel
             cd "$APP_DIR"
+            
+            # Use specific PHP and Composer paths if needed for cPanel
+            # Adjust these if your cPanel uses different paths
+            export PATH=/usr/local/bin:/usr/bin:/bin
+            
             composer install --no-dev --optimize-autoloader
             php artisan migrate --force
             php artisan optimize:clear
@@ -97,7 +103,7 @@ jobs:
             php artisan route:clear
             php artisan view:cache
 
-      - name: Web Subdomain Setup
+      - name: Public Entrypoint Setup
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.SERVER_HOST }}
@@ -106,18 +112,20 @@ jobs:
           port: ${{ secrets.SERVER_PORT }}
           script: |
             set -euo pipefail
-            APP_DIR=~/public_html/country-states-cities.seniorcub.name.ng/laravel
-            WEB_DIR=~/public_html/country-states-cities.seniorcub.name.ng/api
+            BASE_DIR=~/public_html/country-states-cities.seniorcub.name.ng
+            APP_DIR="$BASE_DIR/laravel"
             
-            # 1. Setup api index.php (Laravel Entrypoint)
-            printf '<?php\n\nuse Illuminate\\Contracts\\Http\\Kernel;\nuse Illuminate\\Http\\Request;\n\ndefine('\''LARAVEL_START'\'', microtime(true));\n\nif (file_exists($maintenance = __DIR__."/../laravel/storage/framework/maintenance.php")) {\n    require $maintenance;\n}\n\nrequire __DIR__."/../laravel/vendor/autoload.php";\n\n$app = require_once __DIR__."/../laravel/bootstrap/app.php";\n\n$kernel = $app->make(Kernel::class);\n\n$response = $kernel->handle(\n    $request = Request::capture()\n)->send();\n\n$kernel->terminate($request, $response);' > "$WEB_DIR/index.php"
+            # 1. Setup root index.php (Laravel Entrypoint)
+            printf '<?php\n\nuse Illuminate\\Contracts\\Http\\Kernel;\nuse Illuminate\\Http\\Request;\n\ndefine('\''LARAVEL_START'\'', microtime(true));\n\nif (file_exists($maintenance = __DIR__."/laravel/storage/framework/maintenance.php")) {\n    require $maintenance;\n}\n\nrequire __DIR__."/laravel/vendor/autoload.php";\n\n$app = require_once __DIR__."/laravel/bootstrap/app.php";\n\n$kernel = $app->make(Kernel::class);\n\n$response = $kernel->handle(\n    $request = Request::capture()\n)->send();\n\n$kernel->terminate($request, $response);' > "$BASE_DIR/index.php"
 
-            # 2. Setup .htaccess for api
+            # 2. Setup .htaccess for root (CORS + Routing)
             if [ -f "$APP_DIR/public/.htaccess" ]; then
-              cp -f "$APP_DIR/public/.htaccess" "$WEB_DIR/.htaccess"
+              cp -f "$APP_DIR/public/.htaccess" "$BASE_DIR/.htaccess"
+            else
+              printf "<IfModule mod_rewrite.c>\n    RewriteEngine On\n    RewriteCond %%{REQUEST_FILENAME} !-d\n    RewriteCond %%{REQUEST_FILENAME} !-f\n    RewriteRule ^ index.php [L]\n</IfModule>" > "$BASE_DIR/.htaccess"
             fi
 
-      - name: Storage Symlinks
+      - name: Storage Symlink
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.SERVER_HOST }}
@@ -126,10 +134,10 @@ jobs:
           port: ${{ secrets.SERVER_PORT }}
           script: |
             set -euo pipefail
-            APP_DIR=~/public_html/country-states-cities.seniorcub.name.ng/laravel
-            WEB_DIR=~/public_html/country-states-cities.seniorcub.name.ng/api
+            BASE_DIR=~/public_html/country-states-cities.seniorcub.name.ng
+            APP_DIR="$BASE_DIR/laravel"
             
             # Create symlink if it doesn't exist
-            [ -L "$WEB_DIR/storage" ] || ln -s "$APP_DIR/storage/app/public" "$WEB_DIR/storage"
+            [ -L "$BASE_DIR/storage" ] || ln -s "$APP_DIR/storage/app/public" "$BASE_DIR/storage"
             
             echo "[OK] Storage links verified"
