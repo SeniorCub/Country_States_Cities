@@ -58,10 +58,15 @@ app.use('/api', (req, res, next) => {
 
 // Serve API documentation page
 app.get('/', (req, res) => {
-    const docPath = path.join(__dirname, 'API_DOCUMENTATION.md');
-    const markdown = fs.readFileSync(docPath, 'utf-8');
+    try {
+        const docPath = path.join(__dirname, 'API_DOCUMENTATION.md');
+        let markdown = 'Documentation file not found.';
+        
+        if (fs.existsSync(docPath)) {
+            markdown = fs.readFileSync(docPath, 'utf-8');
+        }
 
-    const html = `
+        const html = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -103,8 +108,9 @@ app.get('/', (req, res) => {
     </div>
 
     <script>
-        const markdown = \`\${markdown.replace(/\`/g, '\\`')}\`;
-        document.getElementById('content').innerHTML = marked.parse(markdown);
+        // Escape backticks and dollar signs to prevent breaking the template literal
+        const rawMarkdown = \`\${markdown.replace(/\`/g, '\\\\`').replace(/\\\$/g, '\\\\\\$')}\`;
+        document.getElementById('content').innerHTML = marked.parse(rawMarkdown);
 
         // Inject Interactive API Tester
         document.querySelectorAll('pre code').forEach(block => {
@@ -119,7 +125,7 @@ app.get('/', (req, res) => {
                     <div class="flex flex-col sm:flex-row items-center gap-3 mb-3">
                         <span class="bg-emerald-500 text-white px-3 py-1.5 rounded text-sm font-bold shadow-sm">GET</span>
                         <div class="flex-1 w-full flex bg-white border border-gray-300 rounded overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 transition-shadow">
-                            <span class="bg-gray-100 text-gray-500 px-3 py-2 text-sm border-r border-gray-300 hidden sm:block select-none">http://localhost:\${window.location.port}</span>
+                            <span class="bg-gray-100 text-gray-500 px-3 py-2 text-sm border-r border-gray-300 hidden sm:block select-none">http://localhost:\${window.location.port || 9055}</span>
                             <input type="text" class="api-url flex-1 px-3 py-2 text-sm font-mono text-gray-700 outline-none w-full" value="\${urlPath}">
                         </div>
                         <button class="send-btn w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded font-semibold text-sm shadow-sm transition-colors flex items-center justify-center gap-2">
@@ -184,9 +190,11 @@ app.get('/', (req, res) => {
     </script>
 </body>
 </html>
-    `;
-
-    res.send(html);
+        `;
+        res.send(html);
+    } catch (err) {
+        res.status(500).send('<h1>Internal Server Error</h1><p>' + err.message + '</p>');
+    }
 });
 
 // ========== REGIONS ENDPOINTS ==========
@@ -706,8 +714,13 @@ function getNetworkIp() {
     return '0.0.0.0'; // Default fallback
 }
 
-app.listen(PORT, '0.0.0.0', () => {
-    const networkIp = getNetworkIp();
-    console.log(`Server running on http://localhost:${PORT}`);
-    console.log(`Network: http://${networkIp}:${PORT}`);
-});
+// Only listen when not on Vercel
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+    app.listen(PORT, '0.0.0.0', () => {
+        const networkIp = getNetworkIp();
+        console.log(`Server running on http://localhost:${PORT}`);
+        console.log(`Network: http://${networkIp}:${PORT}`);
+    });
+}
+
+export default app;
