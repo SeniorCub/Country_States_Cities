@@ -26,6 +26,36 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
+// Simple In-Memory LRU Cache for API routes
+const apiCache = new Map();
+app.use('/api', (req, res, next) => {
+    if (req.method !== 'GET') return next();
+    
+    // Don't cache search with specific parameters to prevent memory bloat, 
+    // except for simple global search or no-param requests.
+    const key = req.originalUrl;
+    
+    if (apiCache.has(key)) {
+        res.setHeader('X-Cache', 'HIT');
+        return res.json(apiCache.get(key));
+    }
+    
+    const originalJson = res.json.bind(res);
+    res.json = (body) => {
+        if (body.success) {
+            // Cap memory limit to 500 distinct requests
+            if (apiCache.size >= 500) {
+                const firstKey = apiCache.keys().next().value;
+                apiCache.delete(firstKey);
+            }
+            apiCache.set(key, body);
+        }
+        res.setHeader('X-Cache', 'MISS');
+        originalJson(body);
+    };
+    next();
+});
+
 // Serve API documentation page
 app.get('/', (req, res) => {
     const docPath = path.join(__dirname, 'API_DOCUMENTATION.md');
@@ -39,30 +69,118 @@ app.get('/', (req, res) => {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Country-State-City API Documentation</title>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; line-height: 1.6; max-width: 900px; margin: 0 auto; padding: 20px; background: #f5f5f5; }
-        .container { background: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        h1 { color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px; }
-        h2 { color: #34495e; margin-top: 30px; border-bottom: 2px solid #ecf0f1; padding-bottom: 8px; }
-        h3 { color: #7f8c8d; }
-        code { background: #f8f9fa; padding: 2px 6px; border-radius: 3px; font-family: 'Courier New', monospace; color: #e74c3c; }
-        pre { background: #2c3e50; color: #ecf0f1; padding: 15px; border-radius: 5px; overflow-x: auto; }
-        pre code { background: transparent; color: #ecf0f1; padding: 0; }
-        a { color: #3498db; text-decoration: none; }
-        a:hover { text-decoration: underline; }
-        table { border-collapse: collapse; width: 100%; margin: 20px 0; }
-        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
-        th { background: #3498db; color: white; }
-        .endpoint { background: #e8f4f8; padding: 10px; border-left: 4px solid #3498db; margin: 10px 0; border-radius: 3px; }
+        .markdown-body { padding: 2rem; color: #374151; }
+        .markdown-body h1 { font-size: 2.25rem; font-weight: 800; color: #111827; margin-bottom: 1.5rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem; }
+        .markdown-body h2 { font-size: 1.75rem; font-weight: 700; color: #1f2937; margin-top: 3rem; margin-bottom: 1rem; }
+        .markdown-body h3 { font-size: 1.25rem; font-weight: 600; color: #374151; margin-top: 2rem; margin-bottom: 0.75rem; }
+        .markdown-body p { margin-bottom: 1rem; line-height: 1.7; }
+        .markdown-body ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 1.5rem; }
+        .markdown-body li { margin-bottom: 0.5rem; }
+        .markdown-body code:not(pre code) { background-color: #f3f4f6; color: #ef4444; padding: 0.2rem 0.4rem; border-radius: 0.25rem; font-size: 0.875em; font-family: monospace; }
+        .markdown-body pre { background-color: #1f2937; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; margin-bottom: 1.5rem; }
+        .markdown-body pre code { color: #e5e7eb; font-family: monospace; font-size: 0.875em; }
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #1e293b; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #64748b; }
     </style>
 </head>
-<body>
-    <div class="container">
-        <div id="content"></div>
+<body class="bg-gray-50 min-h-screen font-sans">
+    <nav class="bg-blue-600 text-white shadow-md sticky top-0 z-50">
+        <div class="max-w-5xl mx-auto px-4 py-3 flex justify-between items-center">
+            <h1 class="text-xl font-bold flex items-center gap-2">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                Location API Explorer
+            </h1>
+            <span class="bg-blue-700 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider">Interactive Mode</span>
+        </div>
+    </nav>
+
+    <div class="max-w-5xl mx-auto bg-white my-8 shadow-sm border border-gray-200 rounded-xl overflow-hidden">
+        <div id="content" class="markdown-body"></div>
     </div>
+
     <script>
-        const markdown = ${JSON.stringify(markdown)};
+        const markdown = \`\${markdown.replace(/\`/g, '\\`')}\`;
         document.getElementById('content').innerHTML = marked.parse(markdown);
+
+        // Inject Interactive API Tester
+        document.querySelectorAll('pre code').forEach(block => {
+            const text = block.innerText.trim();
+            if (text.startsWith('GET /api/')) {
+                const lines = text.split('\\n');
+                const urlPath = lines[0].replace('GET ', '').trim();
+                
+                const container = document.createElement('div');
+                container.className = 'bg-gray-50 border border-gray-200 rounded-lg p-4 mt-2 mb-8 shadow-sm';
+                container.innerHTML = \`
+                    <div class="flex flex-col sm:flex-row items-center gap-3 mb-3">
+                        <span class="bg-emerald-500 text-white px-3 py-1.5 rounded text-sm font-bold shadow-sm">GET</span>
+                        <div class="flex-1 w-full flex bg-white border border-gray-300 rounded overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 transition-shadow">
+                            <span class="bg-gray-100 text-gray-500 px-3 py-2 text-sm border-r border-gray-300 hidden sm:block select-none">http://localhost:\${window.location.port}</span>
+                            <input type="text" class="api-url flex-1 px-3 py-2 text-sm font-mono text-gray-700 outline-none w-full" value="\${urlPath}">
+                        </div>
+                        <button class="send-btn w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded font-semibold text-sm shadow-sm transition-colors flex items-center justify-center gap-2">
+                            <span>Send Request</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                        </button>
+                    </div>
+                    <div class="response-container hidden">
+                        <div class="flex justify-between items-center mb-2 px-1">
+                            <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Response Data</span>
+                            <span class="status-code text-xs font-bold px-2 py-1 rounded-full"></span>
+                        </div>
+                        <div class="relative group">
+                            <pre class="bg-gray-900 text-emerald-400 p-4 rounded-md overflow-x-auto text-sm max-h-96 custom-scrollbar m-0"><code class="response-body font-mono"></code></pre>
+                        </div>
+                    </div>
+                \`;
+                
+                // Hide the original block and insert the interactive one
+                block.parentElement.style.display = 'none';
+                block.parentElement.insertAdjacentElement('beforebegin', container);
+
+                const btn = container.querySelector('.send-btn');
+                const input = container.querySelector('.api-url');
+                const resContainer = container.querySelector('.response-container');
+                const resBody = container.querySelector('.response-body');
+                const statusCode = container.querySelector('.status-code');
+
+                btn.addEventListener('click', async () => {
+                    const originalBtnContent = btn.innerHTML;
+                    btn.innerHTML = '<svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>Executing...</span>';
+                    btn.disabled = true;
+                    resContainer.classList.remove('hidden');
+                    
+                    try {
+                        const startTime = performance.now();
+                        let fetchUrl = input.value;
+                        if (!fetchUrl.startsWith('/')) fetchUrl = '/' + fetchUrl;
+                        
+                        const res = await fetch(fetchUrl);
+                        const isJson = res.headers.get('content-type')?.includes('application/json');
+                        const data = isJson ? await res.json() : await res.text();
+                        
+                        const endTime = performance.now();
+                        const timeTaken = Math.round(endTime - startTime);
+                        
+                        statusCode.innerText = \`\${res.status} \${res.statusText} • \${timeTaken}ms\`;
+                        statusCode.className = \`status-code text-xs font-bold px-2 py-1 rounded-full \${res.ok ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}\`;
+                        
+                        resBody.innerText = isJson ? JSON.stringify(data, null, 2) : data;
+                    } catch (err) {
+                        statusCode.innerText = 'Network Error';
+                        statusCode.className = 'status-code text-xs font-bold px-2 py-1 rounded-full bg-red-100 text-red-800';
+                        resBody.innerText = String(err);
+                    } finally {
+                        btn.innerHTML = originalBtnContent;
+                        btn.disabled = false;
+                    }
+                });
+            }
+        });
     </script>
 </body>
 </html>
@@ -387,7 +505,7 @@ app.get('/api/countries/:countryId/cities', async (req, res) => {
 
 // Search countries by name
 app.get('/api/search/countries', async (req, res) => {
-    const { q, name, iso2, iso3, region, subregion } = req.query;
+    const { q, name, iso2, iso3, region, subregion, page = 1, limit = 15 } = req.query;
     try {
         let query = 'SELECT * FROM countries WHERE 1=1';
         const params = [];
@@ -414,7 +532,10 @@ app.get('/api/search/countries', async (req, res) => {
             params.push(`%${subregion}%`);
         }
 
-        query += ' ORDER BY name LIMIT 100';
+        const offset = (parseInt(page) - 1) * parseInt(limit);
+        query += ' ORDER BY name LIMIT ? OFFSET ?';
+        params.push(parseInt(limit), offset);
+
         const [rows] = await connect.query(query, params);
         res.json({ success: true, data: rows });
     } catch (err) {
@@ -424,30 +545,33 @@ app.get('/api/search/countries', async (req, res) => {
 
 // Search states by name
 app.get('/api/search/states', async (req, res) => {
-    const { q, name, country_id, country_code, iso2 } = req.query;
+    const { q, name, country_id, country_code, iso2, page = 1, limit = 15 } = req.query;
     try {
-        let query = 'SELECT * FROM states WHERE 1=1';
+        let query = 'SELECT s.*, c.name as country_name FROM states s JOIN countries c ON s.country_id = c.id WHERE 1=1';
         const params = [];
 
         const searchTerm = q || name;
         if (searchTerm) {
-            query += ' AND name LIKE ?';
+            query += ' AND s.name LIKE ?';
             params.push(`%${searchTerm}%`);
         }
         if (country_id) {
-            query += ' AND country_id = ?';
+            query += ' AND s.country_id = ?';
             params.push(country_id);
         }
         if (country_code) {
-            query += ' AND country_code = ?';
+            query += ' AND s.country_code = ?';
             params.push(country_code.toUpperCase());
         }
         if (iso2) {
-            query += ' AND iso2 = ?';
+            query += ' AND s.iso2 = ?';
             params.push(iso2.toUpperCase());
         }
 
-        query += ' ORDER BY name LIMIT 100';
+        const offset = (parseInt(page) - 1) * parseInt(limit);
+        query += ' ORDER BY s.name LIMIT ? OFFSET ?';
+        params.push(parseInt(limit), offset);
+
         const [rows] = await connect.query(query, params);
         res.json({ success: true, data: rows });
     } catch (err) {
@@ -457,36 +581,83 @@ app.get('/api/search/states', async (req, res) => {
 
 // Search cities by name
 app.get('/api/search/cities', async (req, res) => {
-    const { q, name, state_id, country_id, country_code, state_code } = req.query;
+    const { q, name, state_id, country_id, country_code, state_code, page = 1, limit = 15 } = req.query;
     try {
-        let query = 'SELECT * FROM cities WHERE 1=1';
+        let query = 'SELECT ci.*, s.name as state_name, co.name as country_name FROM cities ci JOIN states s ON ci.state_id = s.id JOIN countries co ON ci.country_id = co.id WHERE 1=1';
         const params = [];
 
         const searchTerm = q || name;
         if (searchTerm) {
-            query += ' AND name LIKE ?';
+            query += ' AND ci.name LIKE ?';
             params.push(`%${searchTerm}%`);
         }
         if (state_id) {
-            query += ' AND state_id = ?';
+            query += ' AND ci.state_id = ?';
             params.push(state_id);
         }
         if (country_id) {
-            query += ' AND country_id = ?';
+            query += ' AND ci.country_id = ?';
             params.push(country_id);
         }
         if (country_code) {
-            query += ' AND country_code = ?';
+            query += ' AND ci.country_code = ?';
             params.push(country_code.toUpperCase());
         }
         if (state_code) {
-            query += ' AND state_code = ?';
+            query += ' AND ci.state_code = ?';
             params.push(state_code.toUpperCase());
         }
 
-        query += ' ORDER BY name LIMIT 100';
+        const offset = (parseInt(page) - 1) * parseInt(limit);
+        query += ' ORDER BY ci.name LIMIT ? OFFSET ?';
+        params.push(parseInt(limit), offset);
+
         const [rows] = await connect.query(query, params);
         res.json({ success: true, data: rows });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// ========== GLOBAL SEARCH ENDPOINT ==========
+
+app.get('/api/search', async (req, res) => {
+    const { q, limit = 10 } = req.query;
+    
+    if (!q || q.length < 2) {
+        res.status(422).json({ 
+            success: false, 
+            error: 'The q parameter is required and must be at least 2 characters.' 
+        });
+        return;
+    }
+
+    try {
+        const numLimit = parseInt(limit);
+        
+        const [countries] = await connect.query(
+            'SELECT * FROM countries WHERE name LIKE ? LIMIT ?', 
+            [`%${q}%`, numLimit]
+        );
+        
+        const [states] = await connect.query(
+            'SELECT s.*, c.name as country_name FROM states s JOIN countries c ON s.country_id = c.id WHERE s.name LIKE ? LIMIT ?', 
+            [`%${q}%`, numLimit]
+        );
+        
+        const [cities] = await connect.query(
+            'SELECT ci.*, s.name as state_name, co.name as country_name FROM cities ci JOIN states s ON ci.state_id = s.id JOIN countries co ON ci.country_id = co.id WHERE ci.name LIKE ? LIMIT ?', 
+            [`%${q}%`, numLimit]
+        );
+
+        res.json({
+            success: true,
+            data: {
+                countries,
+                states,
+                cities
+            }
+        });
     } catch (err) {
         res.status(500).json({ success: false, error: err.message });
     }

@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\CityController;
 use App\Http\Controllers\Api\RegionController;
 use App\Http\Controllers\Api\SubregionController;
 use App\Http\Controllers\Api\StatsController;
+use App\Http\Controllers\Api\GlobalSearchController;
 
 /*
 |--------------------------------------------------------------------------
@@ -23,6 +24,9 @@ use App\Http\Controllers\Api\StatsController;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+// Global Search
+Route::get('/search', [GlobalSearchController::class, 'search']);
 
 // Region routes
 Route::get('/regions', [RegionController::class, 'index']);

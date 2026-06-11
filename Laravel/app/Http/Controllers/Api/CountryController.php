@@ -12,6 +12,12 @@ class CountryController extends Controller
     {
         $query = Country::query();
         
+        if ($request->has('include')) {
+            $includes = explode(',', $request->include);
+            $allowedIncludes = ['states', 'cities', 'regionModel', 'subregionModel'];
+            $query->with(array_intersect($includes, $allowedIncludes));
+        }
+
         if ($request->has('per_page')) {
             $perPage = min($request->get('per_page', 15), 100);
             $countries = $query->paginate($perPage);
@@ -22,9 +28,17 @@ class CountryController extends Controller
         return response()->json($countries);
     }
 
-    public function show($id)
+    public function show(Request $request, $id)
     {
-        $country = Country::find($id);
+        $query = Country::query();
+
+        if ($request->has('include')) {
+            $includes = explode(',', $request->include);
+            $allowedIncludes = ['states', 'cities', 'regionModel', 'subregionModel'];
+            $query->with(array_intersect($includes, $allowedIncludes));
+        }
+
+        $country = $query->find($id);
         
         if (!$country) {
             return response()->json(['error' => 'Country not found'], 404);
@@ -33,7 +47,7 @@ class CountryController extends Controller
         return response()->json($country);
     }
 
-    public function states($id)
+    public function states(Request $request, $id)
     {
         $country = Country::find($id);
         
@@ -41,11 +55,17 @@ class CountryController extends Controller
             return response()->json(['error' => 'Country not found'], 404);
         }
         
-        $states = $country->states;
+        $query = $country->states();
+
+        if ($request->has('name')) {
+            $query->where('name', 'like', '%' . $request->name . '%');
+        }
+
+        $states = $query->get();
         return response()->json($states);
     }
 
-    public function cities($id)
+    public function cities(Request $request, $id)
     {
         $country = Country::find($id);
         
@@ -53,13 +73,25 @@ class CountryController extends Controller
             return response()->json(['error' => 'Country not found'], 404);
         }
         
-        $cities = $country->cities;
+        $query = $country->cities();
+
+        if ($request->has('name')) {
+            $query->where('name', 'like', '%' . $request->name . '%');
+        }
+
+        $cities = $query->get();
         return response()->json($cities);
     }
 
     public function search(Request $request)
     {
         $query = Country::query();
+
+        if ($request->has('include')) {
+            $includes = explode(',', $request->include);
+            $allowedIncludes = ['states', 'cities', 'regionModel', 'subregionModel'];
+            $query->with(array_intersect($includes, $allowedIncludes));
+        }
         
         if ($request->has('name')) {
             $query->where('name', 'like', '%' . $request->name . '%');
@@ -79,6 +111,11 @@ class CountryController extends Controller
         
         if ($request->has('subregion')) {
             $query->where('subregion', 'like', '%' . $request->subregion . '%');
+        }
+
+        if ($request->has('per_page')) {
+            $perPage = min($request->get('per_page', 15), 100);
+            return response()->json($query->paginate($perPage));
         }
         
         $countries = $query->get();

@@ -7,6 +7,38 @@ This API provides endpoints to fetch countries, states, and cities data from the
 http://localhost:8000/api
 ```
 
+## Advanced Features
+
+### Relationship Inclusion
+Most endpoints support loading related data using the `include` query parameter. This allows you to fetch multiple resources in a single request.
+
+**Available Relationships:**
+- **Countries:** `states`, `cities`, `regionModel`, `subregionModel`
+- **States:** `country`, `cities`
+- **Cities:** `state`, `country`
+
+**Example:**
+```
+GET /api/countries/1?include=states,cities
+GET /api/states/search?name=California&include=country,cities
+```
+
+### Global Search
+`GET /api/search`
+
+Search for countries, states, and cities by name in a single request.
+
+- **Query Params:**
+  - `q` (required): Search term (min 2 characters)
+  - `limit`: Number of results to return per category (default: 10)
+
+- **Example:**
+```
+GET /api/search?q=York
+```
+
+---
+
 ## Endpoints
 
 ### Countries

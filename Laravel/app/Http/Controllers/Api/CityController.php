@@ -12,6 +12,12 @@ class CityController extends Controller
     {
         $query = City::query();
         
+        if ($request->has('include')) {
+            $includes = explode(',', $request->include);
+            $allowedIncludes = ['state', 'country'];
+            $query->with(array_intersect($includes, $allowedIncludes));
+        }
+
         if ($request->has('country_id')) {
             $query->where('country_id', $request->country_id);
         }
@@ -30,9 +36,17 @@ class CityController extends Controller
         return response()->json($cities);
     }
 
-    public function show($id)
+    public function show(Request $request, $id)
     {
-        $city = City::with(['state', 'country'])->find($id);
+        $query = City::query();
+
+        if ($request->has('include')) {
+            $includes = explode(',', $request->include);
+            $allowedIncludes = ['state', 'country'];
+            $query->with(array_intersect($includes, $allowedIncludes));
+        }
+
+        $city = $query->find($id);
         
         if (!$city) {
             return response()->json(['error' => 'City not found'], 404);
@@ -44,6 +58,12 @@ class CityController extends Controller
     public function search(Request $request)
     {
         $query = City::query();
+
+        if ($request->has('include')) {
+            $includes = explode(',', $request->include);
+            $allowedIncludes = ['state', 'country'];
+            $query->with(array_intersect($includes, $allowedIncludes));
+        }
         
         if ($request->has('name')) {
             $query->where('name', 'like', '%' . $request->name . '%');
@@ -63,6 +83,11 @@ class CityController extends Controller
         
         if ($request->has('state_code')) {
             $query->where('state_code', strtoupper($request->state_code));
+        }
+
+        if ($request->has('per_page')) {
+            $perPage = min($request->get('per_page', 15), 100);
+            return response()->json($query->paginate($perPage));
         }
         
         $cities = $query->get();

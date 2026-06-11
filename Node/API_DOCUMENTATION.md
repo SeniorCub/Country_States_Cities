@@ -24,6 +24,29 @@ Error responses:
 
 ---
 
+## Global Search
+`GET /api/search`
+
+Search for countries, states, and cities by name in a single request.
+
+- **Query Params:**
+  - `q` (required): Search term (min 2 characters)
+  - `limit`: Number of results to return per category (default: 10)
+
+- **Example Response:**
+  ```json
+  {
+    "success": true,
+    "data": {
+      "countries": [...],
+      "states": [...],
+      "cities": [...]
+    }
+  }
+  ```
+
+---
+
 ## Regions
 
 ### Get All Regions
