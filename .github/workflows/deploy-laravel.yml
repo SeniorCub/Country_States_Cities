@@ -43,13 +43,30 @@ jobs:
           port: ${{ secrets.SERVER_PORT }}
           script: |
             set -euo pipefail
-            BASE_DIR=~/public_html/country-states-cities.seniorcub.name.ng
+            
+            # Use absolute path based on your server logs
+            BASE_DIR="/home2/seniorcu/public_html/country-states-cities.seniorcub.name.ng"
             APP_DIR="$BASE_DIR/laravel"
             
-            echo "[INFO] Starting server-side setup..."
+            echo "[INFO] Detecting Application Root..."
             
-            # 1. Ensure directory exists and set permissions
-            mkdir -p "$APP_DIR"
+            # Auto-discovery if artisan is not in the expected folder
+            if [ ! -f "$APP_DIR/artisan" ]; then
+              if [ -f "$BASE_DIR/artisan" ]; then
+                echo "[INFO] Found artisan in BASE_DIR. Adjusting APP_DIR..."
+                APP_DIR="$BASE_DIR"
+              else
+                echo "[ERROR] Could not find 'artisan' in $APP_DIR or $BASE_DIR."
+                echo "[DEBUG] Current directory: $(pwd)"
+                echo "[DEBUG] Contents of BASE_DIR:"
+                ls -F "$BASE_DIR"
+                exit 1
+              fi
+            fi
+            
+            echo "[INFO] Target App Directory: $APP_DIR"
+            
+            # 1. Set permissions
             chmod -R 755 "$APP_DIR"
             
             # 2. Write .env file
@@ -58,31 +75,51 @@ jobs:
             INNER_EOF
             chmod 600 "$APP_DIR/.env"
             
-            # 3. Validate artisan exists
-            if [ ! -f "$APP_DIR/artisan" ]; then
-              echo "[ERROR] artisan not found at $APP_DIR/artisan"
-              exit 1
-            fi
-            
-            # 4. Set storage/cache permissions
+            # 3. Set storage/cache permissions
             chmod -R 775 "$APP_DIR/storage" "$APP_DIR/bootstrap/cache"
             
-            # 5. Laravel Build & Cache
+            # 4. Laravel Build & Cache
             cd "$APP_DIR"
             export PATH=/usr/local/bin:/usr/bin:/bin
             
             echo "[INFO] Running composer and artisan commands..."
-            composer install --no-dev --optimize-autoloader
+            # Check if composer exists, if not use local or global
+            COMPOSER_BIN=$(which composer || echo "php /usr/local/bin/composer")
+            $COMPOSER_BIN install --no-dev --optimize-autoloader
+            
             php artisan migrate --force
             php artisan optimize:clear
             php artisan config:cache
             php artisan route:clear
             php artisan view:cache
             
-            # 6. Public Entrypoint Setup
+            # 5. Public Entrypoint Setup (index.php)
             echo "[INFO] Setting up public entrypoints..."
-            printf '<?php\n\nuse Illuminate\\Contracts\\Http\\Kernel;\nuse Illuminate\\Http\\Request;\n\ndefine('\''LARAVEL_START'\'', microtime(true));\n\nif (file_exists($maintenance = __DIR__."/laravel/storage/framework/maintenance.php")) {\n    require $maintenance;\n}\n\nrequire __DIR__."/laravel/vendor/autoload.php";\n\n$app = require_once __DIR__."/laravel/bootstrap/app.php";\n\n$kernel = $app->make(Kernel::class);\n\n$response = $kernel->handle(\n    $request = Request::capture()\n)->send();\n\n$kernel->terminate($request, $response);' > "$BASE_DIR/index.php"
+            # Adjust index.php paths based on whether APP_DIR is BASE_DIR
+            if [ "$APP_DIR" == "$BASE_DIR" ]; then
+                LOADER="./vendor/autoload.php"
+                BOOTSTRAP="./bootstrap/app.php"
+                MAINTENANCE="./storage/framework/maintenance.php"
+            else
+                LOADER="./laravel/vendor/autoload.php"
+                BOOTSTRAP="./laravel/bootstrap/app.php"
+                MAINTENANCE="./laravel/storage/framework/maintenance.php"
+            fi
 
+            cat > "$BASE_DIR/index.php" << EOF
+            <?php
+            define('LARAVEL_START', microtime(true));
+            if (file_exists(\$maintenance = __DIR__ . '$MAINTENANCE')) {
+                require \$maintenance;
+            }
+            require __DIR__ . '$LOADER';
+            \$app = require_once __DIR__ . '$BOOTSTRAP';
+            \$kernel = \$app->make(Illuminate\Contracts\Http\Kernel::class);
+            \$response = \$kernel->handle(\$request = Illuminate\Http\Request::capture())->send();
+            \$kernel->terminate(\$request, \$response);
+            EOF
+
+            # 6. Setup .htaccess
             if [ -f "$APP_DIR/public/.htaccess" ]; then
               cp -f "$APP_DIR/public/.htaccess" "$BASE_DIR/.htaccess"
               sed -i '1i DirectoryIndex index.php' "$BASE_DIR/.htaccess"

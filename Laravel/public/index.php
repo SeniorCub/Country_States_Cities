@@ -54,3 +54,4 @@ $response = $kernel->handle(
 
 $kernel->terminate($request, $response);
 // Force deploy
+// Force deploy for path fix
