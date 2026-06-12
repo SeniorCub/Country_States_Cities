@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'Laravel/**'
+      - '.github/workflows/deploy-laravel.yml'
 
 jobs:
   deploy:
