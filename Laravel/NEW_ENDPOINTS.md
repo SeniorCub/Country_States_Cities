@@ -1,6 +1,6 @@
 # Complete API Endpoints List
 
-Base URL: `http://localhost:8000/api`
+Base URL: `https://country-states-cities.seniorcub.name.ng/api` or `http://localhost:8000/api`
 
 ## Regions (4 endpoints)
 

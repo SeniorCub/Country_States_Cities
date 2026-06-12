@@ -1,6 +1,6 @@
 # Complete API Endpoints List
 
-Base URL: `http://localhost:9055`
+Base URL: `https://country-states-cities.vercel.app` or `https://country-states-cities.onrender.com` or `http://localhost:9055`
 
 ## Regions (4 endpoints)
 

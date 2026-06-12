@@ -4,6 +4,7 @@ This API provides endpoints to fetch countries, states, and cities data from the
 
 ## Base URL
 ```
+https://country-states-cities.seniorcub.name.ng/api
 http://localhost:8000/api
 ```
 

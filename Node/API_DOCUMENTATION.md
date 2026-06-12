@@ -2,6 +2,8 @@
 
 ## Base URL
 ```
+https://country-states-cities.vercel.app
+https://country-states-cities.onrender.com
 http://localhost:9055
 ```
 

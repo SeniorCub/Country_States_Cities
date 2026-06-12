@@ -125,7 +125,7 @@ app.get('/', (req, res) => {
                     <div class="flex flex-col sm:flex-row items-center gap-3 mb-3">
                         <span class="bg-emerald-500 text-white px-3 py-1.5 rounded text-sm font-bold shadow-sm">GET</span>
                         <div class="flex-1 w-full flex bg-white border border-gray-300 rounded overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 transition-shadow">
-                            <span class="bg-gray-100 text-gray-500 px-3 py-2 text-sm border-r border-gray-300 hidden sm:block select-none">http://localhost:\${window.location.port || 9055}</span>
+                            <span class="bg-gray-100 text-gray-500 px-3 py-2 text-sm border-r border-gray-300 hidden sm:block select-none">${window.location.origin || 'https://country-states-cities.onrender.com'}</span>
                             <input type="text" class="api-url flex-1 px-3 py-2 text-sm font-mono text-gray-700 outline-none w-full" value="\${urlPath}">
                         </div>
                         <button class="send-btn w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded font-semibold text-sm shadow-sm transition-colors flex items-center justify-center gap-2">
