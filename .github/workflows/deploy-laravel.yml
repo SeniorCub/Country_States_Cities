@@ -121,8 +121,10 @@ jobs:
             # 2. Setup .htaccess for root (CORS + Routing)
             if [ -f "$APP_DIR/public/.htaccess" ]; then
               cp -f "$APP_DIR/public/.htaccess" "$BASE_DIR/.htaccess"
+              # Ensure DirectoryIndex is set
+              sed -i '1i DirectoryIndex index.php' "$BASE_DIR/.htaccess"
             else
-              printf "<IfModule mod_rewrite.c>\n    RewriteEngine On\n    RewriteCond %%{REQUEST_FILENAME} !-d\n    RewriteCond %%{REQUEST_FILENAME} !-f\n    RewriteRule ^ index.php [L]\n</IfModule>" > "$BASE_DIR/.htaccess"
+              printf "DirectoryIndex index.php\n<IfModule mod_rewrite.c>\n    RewriteEngine On\n    RewriteCond %%{REQUEST_FILENAME} !-d\n    RewriteCond %%{REQUEST_FILENAME} !-f\n    RewriteRule ^ index.php [L]\n</IfModule>" > "$BASE_DIR/.htaccess"
             fi
 
       - name: Storage Symlink

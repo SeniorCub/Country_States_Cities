@@ -108,8 +108,8 @@ app.get('/', (req, res) => {
     </div>
 
     <script>
-        // Escape backticks and dollar signs to prevent breaking the template literal
-        const rawMarkdown = \`\${markdown.replace(/\`/g, '\\\\`').replace(/\\\$/g, '\\\\\\$')}\`;
+        // Safely pass the markdown content to the client
+        const rawMarkdown = ${JSON.stringify(markdown)};
         document.getElementById('content').innerHTML = marked.parse(rawMarkdown);
 
         // Inject Interactive API Tester
